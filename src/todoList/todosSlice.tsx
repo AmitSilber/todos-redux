@@ -10,6 +10,7 @@ import {
 } from '@reduxjs/toolkit'
 
 import { RootState } from "../app/store";
+import { v4 as uuid } from 'uuid';
 
 
 
@@ -49,7 +50,7 @@ const todosTimelineSlice = createSlice({
                 title,
                 date,
                 status: "pending" as TodoStatus,
-                id: title,
+                id: uuid(),
             }
             state.present.entries[newTodo.id] = newTodo;
             state.present.todoIdsInOrder.push(newTodo.id);
