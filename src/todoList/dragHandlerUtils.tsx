@@ -12,7 +12,7 @@ export function reorderTodoList(index: number,
   idsInOrder: string[],
   dispatch: AppDispatch
 ): void {
-  if (index == draggingItem.current) {
+  if (index === draggingItem.current) {
     return;
   }
   dragOverItem.current = index;

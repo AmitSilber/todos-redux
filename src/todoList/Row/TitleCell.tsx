@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { changeTitle, removeTodo } from '../todosSlice';
 import { TodoItem, useToggle } from '../../utils';
