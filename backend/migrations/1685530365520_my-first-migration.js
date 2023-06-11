@@ -3,23 +3,24 @@
 exports.shorthands = undefined;
 
 exports.up = (pgm) => {
+  pgm.createType('todo_status', ['pending', 'completed']);
   pgm.createTable('todosTable', {
     id: {
-      type: 'varchar(255)',
+      type: 'text',
       notNull: true,
       unqiue: true,
       primaryKey: true,
     },
     title: {
-      type: 'varchar(255)',
+      type: 'text',
       notNull: true,
     },
     date: {
-      type: 'varchar(255)',
+      type: 'timestamp',
       notNull: true,
     },
     status: {
-      type: 'varchar(255)',
+      type: 'todo_status',
       notNull: true,
     },
     todosorder: {
@@ -27,14 +28,11 @@ exports.up = (pgm) => {
       notNull: true,
     },
   });
-  pgm.addConstraint('todosTable', 'status_is_either_pending_or_completed', {
-    check: "status='pending' OR status='completed'",
-  });
   pgm.createIndex('todosTable', 'todosorder');
 };
 
 exports.down = (pgm) => {
-  pgm.dropConstraint('todosTable', 'status_is_either_pending_or_completed');
+  pgm.dropType('todo_status');
   pgm.dropIndex('todosTable', 'todosorder');
   pgm.dropTable('todosTable');
 };

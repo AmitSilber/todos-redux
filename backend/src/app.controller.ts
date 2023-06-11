@@ -11,7 +11,6 @@ import {
   ParseArrayPipe,
   Res,
   HttpStatus,
-  HttpCode,
   UseFilters,
   UsePipes,
 } from '@nestjs/common';
@@ -39,20 +38,11 @@ export class AppController {
 
   @Get()
   async findAll(@Res() res: Response) {
-    const todos = (await this.appService.findAll()).rows as TodoDto[];
-    const todosJsonWithOrderedIds = {
-      entries: todos.reduce((resultJson, todo) => {
-        resultJson[todo.id] = todo;
-        return resultJson;
-      }, {}),
-      todoIdsInOrder: todos.map((todo) => todo.id),
-    };
+    const todos = await this.appService.findAll();
+
     return new Promise((resolve) => {
       setTimeout(
-        () =>
-          resolve(
-            res.status(HttpStatus.ACCEPTED).json(todosJsonWithOrderedIds),
-          ),
+        () => resolve(res.status(HttpStatus.ACCEPTED).json(todos)),
         2000,
       );
     });
@@ -60,19 +50,15 @@ export class AppController {
 
   @Get('order')
   async getTodosOrder(@Res() res: Response) {
-    const todos = (await this.appService.findAll()).rows as TodoDto[];
-    const todosOrder = { todoIdsOrder: todos.map((todo) => todo.id) };
+    const todosOrder = (await this.appService.findAll()).todoIdsInOrder;
     return res.status(HttpStatus.ACCEPTED).json(todosOrder);
   }
 
   @Get(':id')
   @UsePipes(new ParseUUIDPipe())
   async findOne(@Param('id') id: string, @Res() res: Response) {
-    const todosAffected = (await this.appService.findOne(id)).rows;
-    if (todosAffected.length !== 1) {
-      throwConflictError();
-    }
-    return res.status(HttpStatus.ACCEPTED).json(todosAffected[0] as TodoDto);
+    const todosAffected = await this.appService.findOne(id);
+    return res.status(HttpStatus.ACCEPTED).json(todosAffected);
   }
 
   @Put()
@@ -81,11 +67,7 @@ export class AppController {
     updateTodoDto: TodoDto,
     @Res() res: Response,
   ) {
-    const todosAffected = (await this.appService.updateTodo(updateTodoDto))
-      .rows;
-    if (todosAffected.length !== 1) {
-      throwConflictError();
-    }
+    await this.appService.updateTodo(updateTodoDto);
     return res.status(HttpStatus.ACCEPTED).send({
       message: `updated todo with id ${updateTodoDto.id} successfully`,
     });
@@ -96,7 +78,7 @@ export class AppController {
     @Body(new ParseArrayPipe({ items: String })) newIdsOrder: string[],
     @Res() res: Response,
   ) {
-    this.appService.reorderTodos(newIdsOrder);
+    await this.appService.reorderTodos(newIdsOrder);
     return res
       .status(HttpStatus.ACCEPTED)
       .send({ message: 'updated todos order successfully' });
@@ -104,19 +86,9 @@ export class AppController {
 
   @Delete(':id')
   async remove(@Param('id') id: string, @Res() res: Response) {
-    const todosAffected = (await this.appService.removeTodo(id)).rows;
-    if (todosAffected.length !== 1) {
-      throwConflictError();
-    }
+    await this.appService.removeTodo(id);
     return res
       .status(HttpStatus.ACCEPTED)
       .send(`deleted todo with id ${id} successfully`);
   }
 }
-
-const throwConflictError = () => {
-  throw new ConflictException('conflict happend', {
-    cause: new Error(),
-    description: 'request yeilded mre than one result',
-  });
-};

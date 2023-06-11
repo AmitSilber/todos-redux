@@ -1,22 +1,23 @@
-import { IsString, IsIn, IsInt, IsUUID } from 'class-validator';
-const todoStatusValues = ['pending', 'completed'] as const;
-const todoStringKeys = ['title', 'date'] as const;
-const todoStatusKey = ['status'] as const;
-export type TodoStringKeyTypes = (typeof todoStringKeys)[number];
-export type statusValues = (typeof todoStatusValues)[number];
+import { IsString, IsIn, IsUUID } from 'class-validator';
+const statusValues = ['pending', 'completed'] as const;
+export type StatusValuesTypes = (typeof statusValues)[number];
 
 export class TodoDto {
   @IsString()
   title: string;
   @IsString()
   date: string;
-  @IsIn(todoStatusValues)
-  status: statusValues;
+  @IsIn(statusValues)
+  status: StatusValuesTypes;
   @IsUUID()
   id: string;
 }
 
-export type todosDto = {
+export class TodoDatabaseRow extends TodoDto {
+  todosorder: number;
+}
+
+export type TodosDto = {
   entries: {
     [id: string]: TodoDto;
   };
